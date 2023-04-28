@@ -23,19 +23,19 @@ build-and-publish-images:
       variables:
         TAG: "dev"
   before_script:
-    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    - docker login -u SebTex -p 18051998St&
     - export COMMIT_TIME=$(git show -s --format=%ct $CI_COMMIT_SHA)
   script:
     - docker-compose -f docker-compose-build.yaml
     - docker images
-    - docker push $DOCKER_LOWER_USERNAME/result:$TAG-$COMMIT_TIME
-    - docker push $DOCKER_LOWER_USERNAME/result:latest-$TAG
-    - docker push $DOCKER_LOWER_USERNAME/vote:$TAG-$COMMIT_TIME
-    - docker push $DOCKER_LOWER_USERNAME/vote:latest-$TAG
-    - docker push $DOCKER_LOWER_USERNAME/worker:$TAG-$COMMIT_TIME
-    - docker push $DOCKER_LOWER_USERNAME/worker:latest-$TAG
-    - docker push $DOCKER_LOWER_USERNAME/seed-data:$TAG-$COMMIT_TIME
-    - docker push $DOCKER_LOWER_USERNAME/seed-data:latest-$TAG
+    - docker push sebtex/result:$TAG-$COMMIT_TIME
+    - docker push sebtex/result:latest-$TAG
+    - docker push sebtex/vote:$TAG-$COMMIT_TIME
+    - docker push sebtex/vote:latest-$TAG
+    - docker push sebtex/worker:$TAG-$COMMIT_TIME
+    - docker push sebtex/worker:latest-$TAG
+    - docker push sebtex/seed-data:$TAG-$COMMIT_TIME
+    - docker push sebtex/seed-data:latest-$TAG
 
 deploy:
   stage: deploy
