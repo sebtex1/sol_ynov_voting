@@ -1,0 +1,55 @@
+image: docker:latest
+
+variables:
+  DOCKER_TLS_CERIDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+
+services:
+  - docker:dind
+
+stages:
+  - build-n-pub
+  - deploy
+
+build-and-publish-images:
+  stage: build-n-pub
+  tags: 
+    - docker
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables:
+        TAG: "latest-prod"
+    - if: $CI_COMMIT_BRANCH == "dev"
+      variables:
+        TAG: "latest-dev"
+  before-script:
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  script:
+    - docker-compose -f docker-compose-build.yaml
+    - docker images
+    - docker push $DOCKER_LOWER_USERNAME/result:$TAG
+    - docker push $DOCKER_LOWER_USERNAME/vote:$TAG
+    - docker push $DOCKER_LOWER_USERNAME/worker:$TAG
+    - docker push $DOCKER_LOWER_USERNAME/seed-data:$TAG
+
+deploy:
+  stage: deploy
+  tags: 
+    - docker
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables:
+        IP_SERVER: $IP_SERVER_PROD
+    - if: $CI_COMMIT_BRANCH == "dev"
+      variables:
+        IP_SERVER: $IP_SERVER_DEV
+  before-script:
+    - chmod 400 $SSH_PRIVATE_KEY
+    - scp -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY docker-compose.yml ubuntu@$IP_SERVER:/home/ubuntu
+  script:
+    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY ubuntu@$IP_SERVER "
+      ls &&
+      docker-compose down &&
+      docker-compose up -d
+      docker images &&
+      docker ps"
