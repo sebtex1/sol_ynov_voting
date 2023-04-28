@@ -23,7 +23,7 @@ build-and-publish-images:
       variables:
         TAG: "latest-dev"
   before_script:
-    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    - docker login -u SebTex -p 18051998St&
   script:
     - docker-compose -f docker-compose-build.yaml
     - docker images
