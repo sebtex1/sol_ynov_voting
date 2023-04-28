@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  result:
+    build:
+      context: ./result
+    image: result
+
+  vote:
+    build:
+      context: ./vote
+    image: vote
+
+  worker:
+    build:
+      context: ./worker
+    image: worker
+  
+  seed-data:
+    build:
+      context: ./seed-data
+    image: seed-data

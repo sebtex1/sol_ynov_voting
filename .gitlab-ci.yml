@@ -1,0 +1,59 @@
+image: docker:latest
+
+variables:
+  DOCKER_TLS_CERIDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+
+services:
+  - docker:dind
+
+stages:
+  - build-n-pub
+  # - publish
+  - deploy-dev
+  - deploy-prod
+
+build-and-publish-images:
+  stage: build-n-pub
+  tags: 
+    - docker
+  rules:
+    - if: $ENVIRONNEMENT != "dev" || $ENVIRONNEMENT != "prod"
+  before-script:
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  script:
+    - docker-compose -f docker-compose-build.yaml
+    - docker images
+    - docker push $DOCKER_LOWER_USERNAME/m2-frontend:latest
+    - docker push $DOCKER_LOWER_USERNAME/m2-reverseproxy:latest
+    - docker push $DOCKER_LOWER_USERNAME/m2-backend-feed:latest
+    - docker push $DOCKER_LOWER_USERNAME/m2-backend-user:latest
+deploy-dev:
+  stage: deploy-dev
+  # rules:
+  #   - if: $ENVIRONNEMENT == "dev"
+  before-script:
+    - chmod 400 $SSH_PRIVATE_KEY
+    - scp -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY docker-compose.yml ubuntu@ip-server:/home/ubuntu
+  script:
+    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY ubuntu@ip-server "
+      ls &&
+      docker-compose down &&
+      docker-compose up -d
+      docker images &&
+      docker ps"
+
+deploy-prod:
+  stages: deploy-prod
+  rules:
+    - if: $ENVIRONNEMENT == "prod"
+  before-script:
+    - chmod 400 $SSH_PRIVATE_KEY
+    - scp -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY docker-compose.yml ubuntu@ip-server:/home/ubuntu
+  script:
+    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY ubuntu@ip-server "
+      ls &&
+      docker-compose down &&
+      docker-compose up -d
+      docker images &&
+      docker ps"
