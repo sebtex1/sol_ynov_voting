@@ -8,29 +8,29 @@ services:
   - docker:dind
 
 stages:
-  - build-n-pub
+  # - build-n-pub
   - deploy
 
-build-and-publish-images:
-  stage: build-n-pub
-  tags: 
-    - docker
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      variables:
-        TAG: "latest-prod"
-    - if: $CI_COMMIT_BRANCH == "dev"
-      variables:
-        TAG: "latest-dev"
-  before_script:
-    - docker login -u SebTex -p 18051998St&
-  script:
-    - docker-compose -f docker-compose-build.yaml build --parallel
-    - docker images
-    - docker push $DOCKER_LOWER_USERNAME/result:$TAG
-    - docker push $DOCKER_LOWER_USERNAME/vote:$TAG
-    - docker push $DOCKER_LOWER_USERNAME/worker:$TAG
-    - docker push $DOCKER_LOWER_USERNAME/seed-data:$TAG
+# build-and-publish-images:
+#   stage: build-n-pub
+#   tags: 
+#     - docker
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == "main"
+#       variables:
+#         TAG: "latest-prod"
+#     - if: $CI_COMMIT_BRANCH == "dev"
+#       variables:
+#         TAG: "latest-dev"
+#   before_script:
+#     - docker login -u SebTex -p 18051998St&
+#   script:
+#     - docker-compose -f docker-compose-build.yaml build --parallel
+#     - docker images
+#     - docker push $DOCKER_LOWER_USERNAME/result:$TAG
+#     - docker push $DOCKER_LOWER_USERNAME/vote:$TAG
+#     - docker push $DOCKER_LOWER_USERNAME/worker:$TAG
+#     - docker push $DOCKER_LOWER_USERNAME/seed-data:$TAG
 
 deploy:
   stage: deploy
