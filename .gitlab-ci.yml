@@ -8,29 +8,34 @@ services:
   - docker:dind
 
 stages:
-  # - build-n-pub
+  - build-n-pub
   - deploy
 
-# build-and-publish-images:
-#   stage: build-n-pub
-#   tags: 
-#     - docker
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == "main"
-#       variables:
-#         TAG: "latest-prod"
-#     - if: $CI_COMMIT_BRANCH == "dev"
-#       variables:
-#         TAG: "latest-dev"
-#   before_script:
-#     - docker login -u SebTex -p 18051998St&
-#   script:
-#     - docker-compose -f docker-compose-build.yaml build --parallel
-#     - docker images
-#     - docker push $DOCKER_LOWER_USERNAME/result:$TAG
-#     - docker push $DOCKER_LOWER_USERNAME/vote:$TAG
-#     - docker push $DOCKER_LOWER_USERNAME/worker:$TAG
-#     - docker push $DOCKER_LOWER_USERNAME/seed-data:$TAG
+build-and-publish-images:
+  stage: build-n-pub
+  tags: 
+    - docker
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables:
+        TAG: "prod"
+    - if: $CI_COMMIT_BRANCH == "dev"
+      variables:
+        TAG: "dev"
+  before-script:
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    - export COMMIT_TIME=$(git show -s --format=%ct $CI_COMMIT_SHA)
+  script:
+    - docker-compose -f docker-compose-build.yaml
+    - docker images
+    - docker push $DOCKER_LOWER_USERNAME/result:$TAG-$COMMIT_TIME
+    - docker push $DOCKER_LOWER_USERNAME/result:latest-$TAG
+    - docker push $DOCKER_LOWER_USERNAME/vote:$TAG-$COMMIT_TIME
+    - docker push $DOCKER_LOWER_USERNAME/vote:latest-$TAG
+    - docker push $DOCKER_LOWER_USERNAME/worker:$TAG-$COMMIT_TIME
+    - docker push $DOCKER_LOWER_USERNAME/worker:latest-$TAG
+    - docker push $DOCKER_LOWER_USERNAME/seed-data:$TAG-$COMMIT_TIME
+    - docker push $DOCKER_LOWER_USERNAME/seed-data:latest-$TAG
 
 deploy:
   stage: deploy
@@ -40,12 +45,14 @@ deploy:
     - if: $CI_COMMIT_BRANCH == "main"
       variables:
         IP_SERVER: $IP_SERVER_PROD
+        TAG: "prod"
     - if: $CI_COMMIT_BRANCH == "dev"
       variables:
         IP_SERVER: $IP_SERVER_DEV
-  before_script:
+        TAG: "dev"
+  before-script:
     - chmod 400 $SSH_PRIVATE_KEY
-    - scp -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY docker-compose.yml ubuntu@$IP_SERVER:/home/ubuntu
+    - scp -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY docker-compose-$TAG.yml ubuntu@$IP_SERVER:/home/ubuntu
   script:
     - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY ubuntu@$IP_SERVER "
       ls &&
