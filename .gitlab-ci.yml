@@ -2,14 +2,10 @@ image: docker:latest
 
 variables:
   DOCKER_TLS_CERIDIR: ""
-  # DOCKER_HOST: tcp://docker:2375
+  DOCKER_HOST: tcp://docker:2375
 
 services:
   - docker:dind
-  entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
-
-script:
-- export DOCKER_HOST=tcp://127.0.0.1:2375 && docker build --pull -t ${CI_REGISTRY_IMAGE} .
 
 stages:
   - build-n-pub
